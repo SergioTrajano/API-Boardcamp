@@ -15,6 +15,7 @@ export async function insertCostumer(req, res) {
 
 export async function listCostumers(req, res) {
     const searchCpf = req.query.cpf;
+    const { offset, limit } = req.query;
     let customers;
 
     if (searchCpf) {
@@ -27,7 +28,10 @@ export async function listCostumers(req, res) {
 
     customers.map(c => c.birthday = dayjs(c.birthday).format("YYYY-MM-DD"));
 
-    res.send(customers);
+    const initialIndex = offset ? parseInt(offset) : 0;
+    const lastIndex = limit ? parseInt(limit) + initialIndex : customers.length;
+
+    res.send(customers.slice(initialIndex, lastIndex));
 }
 
 export async function identifyCustomerById(req, res) {

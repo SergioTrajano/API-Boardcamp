@@ -1,4 +1,4 @@
-import bodySchema from "../schemas/categoriesPostSchema.js";
+import bodySchema from "../schemas/categoriesSchema.js";
 import connection from "../database.js";
 
 export async function validateBody(req, res, next) {

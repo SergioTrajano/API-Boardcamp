@@ -1,5 +1,5 @@
 import connection from "../database.js";
-import { bodySchema } from "../schemas/gamesPostSchema.js";
+import { bodySchema } from "../schemas/gamesSchema.js";
 
 export default async function validateBody(req, res, next) {
     const newGame = req.body;

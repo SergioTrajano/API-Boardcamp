@@ -60,6 +60,7 @@ function rentalModal(getRentals) {
 export async function listRentals(req, res) {
     const customerId = parseInt(req.query.customerId);
     const gameId = parseInt(req.query.gameId);
+    const { offset, limit } = req.query;
     
     const querySupplieParams = [];
     if (customerId) querySupplieParams.push(customerId);
@@ -81,7 +82,10 @@ export async function listRentals(req, res) {
 
     const rentals = rentalModal(getRentals);
 
-    res.send(rentals);
+    const initialIndex = offset ? parseInt(offset) : 0;
+    const lastIndex = limit ? parseInt(limit) + initialIndex : rentals.length;
+
+    res.send(rentals.splice(initialIndex, lastIndex));
 }
 
 export async function finishRental(req, res) {

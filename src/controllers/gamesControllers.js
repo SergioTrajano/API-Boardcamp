@@ -15,7 +15,9 @@ export async function insertGame(req, res) {
 
 export async function listGames(req, res) {
     const searchNameInitial = req.query.name;
+    const { offset, limit } = req.query;
     let games;
+
     if (searchNameInitial) {
         const {rows: list } = await connection.query(`SELECT games.*, categories.name as "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id WHERE LOWER(games.name) LIKE Lower($1)`, [searchNameInitial + "%"]);
         games = list;
@@ -24,5 +26,8 @@ export async function listGames(req, res) {
         games = list;
     }
 
-    res.send(games);
+    const initialIndex = offset ? parseInt(offset) : 0;
+    const lastIndex = limit ? parseInt(limit) + initialIndex : games.length;
+
+    res.send(games.splice(initialIndex, lastIndex));
 }

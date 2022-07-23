@@ -1,7 +1,7 @@
 import connection from "../database.js";
 import dayjs from "dayjs";
 
-import bodySchema from "../schemas/customresSchema.js";
+import bodySchema from "../schemas/customersSchema.js";
 
 function badRequestMistakes(newCustomer) {
     const validateCPF = /[0-9]{11}/;
