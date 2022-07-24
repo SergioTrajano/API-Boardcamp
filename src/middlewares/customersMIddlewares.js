@@ -55,3 +55,29 @@ export async function validateIdParam(req, res, next) {
 
     next();
 }
+
+export async function verifyCPF(req, res, next) {
+    const newCustomer = req.body;
+    const customerId = req.params.id;
+
+    const { error } = bodySchema.validate(newCustomer);
+
+    if (error) {
+        res.sendStatus(422);
+        return;
+    }
+
+    const badRequestInfo = badRequestMistakes(newCustomer);
+    if (badRequestInfo.length) {
+        res.status(400).send(badRequestInfo);
+        return;
+    }
+
+    const { rows: dbCPF } = await connection.query(`SELECT * FROM customers WHERE cpf=$1 AND id<>$2`, [newCustomer.cpf, customerId]);
+    if (dbCPF.length) {
+        res.status(409).send("'cpf' não pode ser de um cliente já existente");
+        return;
+    }
+    
+    next();
+}
