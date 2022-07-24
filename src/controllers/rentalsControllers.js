@@ -64,14 +64,17 @@ export async function listRentals(req, res) {
     
     const querySupplieParams = [];
     let queryComplement = ``;
+
     if (customerId) {
         querySupplieParams.push(customerId);
         queryComplement += `WHERE rentals."customerId"=$${querySupplieParams.length} `;
     }
     if (gameId) {
+        const currentquerySupplieParamsLength = querySupplieParams.length;
         querySupplieParams.push(gameId);
-        querySupplieParams.length ? queryComplement += `AND rentals."gameId"=$${querySupplieParams.length} ` : `WHERE rentals."gameId"=$${querySupplieParams.length} `; 
+        currentquerySupplieParamsLength > 0 ? queryComplement += `AND rentals."gameId"=$${querySupplieParams.length} ` : `WHERE rentals."gameId"=$${querySupplieParams.length} `; 
     }
+    
 
     let { rows: getRentals } = await connection.query(`
         SELECT rentals.*, games.id as "gId", games.name as "gName", categories.id as "caId", categories.name as "caName", customers.id as "cId", customers.name as "cName" 
@@ -84,8 +87,8 @@ export async function listRentals(req, res) {
         `, querySupplieParams);
 
     if (status === "open") getRentals = getRentals.filter(rental => !rental.returnDate);
-    if (status === "close") getRentals = getRentals.filter(rental => rental.returnDate);
-    if (dayjs(startDate).format("YYYY-MM-DD") !== "Invalid Date") getRentals = getRentals.filter(rental => dayjs(rental.rentDate) >= dayjs(startDate));
+    else if (status === "close") getRentals = getRentals.filter(rental => rental.returnDate);
+    if ( startDate && dayjs(startDate).format("YYYY-MM-DD") !== "Invalid Date") getRentals = getRentals.filter(rental => dayjs(rental.rentDate) >= dayjs(startDate));
 
     const rentals = rentalModal(getRentals);
 

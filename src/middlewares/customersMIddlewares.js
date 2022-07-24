@@ -4,17 +4,17 @@ import dayjs from "dayjs";
 import bodySchema from "../schemas/customersSchema.js";
 
 function badRequestMistakes(newCustomer) {
-    const validateCPF = /[0-9]{11}/;
-    const validatePhone = /[0-9]{10,11}/;
-    const costumersBirthdayYear = parseInt(dayjs(newCustomer.birthday).format("YYYY"));
-    const currentYear = parseInt(dayjs().format("YYYY"))
-    const maxValidAge = 100;
+    const validateCPF = /^[0-9]{11}$/;
+    const validatePhone = /^[0-9]{10,11}$/;
+    const validateBirthday = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
+
     const info = [];
 
     if (!newCustomer.name) info.push("'name' não pode ser uma string vazia");
     if (!validateCPF.test(newCustomer.cpf)) info.push("'cpf' deve ser uma string com 11 caracteres numéricos");
     if (!validatePhone.test(newCustomer.phone)) info.push("'phone' deve ser uma string com 10 ou 11 caracteres numéricos");
-
+    if (!validateBirthday.test(newCustomer.birthday)) info.push("Data invalida");
+    
     return info;
 }
 
