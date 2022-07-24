@@ -16,15 +16,23 @@ export async function insertGame(req, res) {
 export async function listGames(req, res) {
     const searchNameInitial = req.query.name;
     const { offset, limit } = req.query;
-    let games;
+    const querySupplieParams = [];
+    let queryComplement = ``;
 
     if (searchNameInitial) {
-        const {rows: list } = await connection.query(`SELECT games.*, categories.name as "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id WHERE LOWER(games.name) LIKE Lower($1)`, [searchNameInitial + "%"]);
-        games = list;
-    }   else {
-        const { rows: list } = await connection.query(`SELECT games.*, categories.name as "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id`);
-        games = list;
+        querySupplieParams.push(searchNameInitial);
+        queryComplement += `WHERE LOWER(games.name) LIKE Lower($${querySupplieParams.length})`;
     }
+
+    const { rows: games } = await connection.query(`SELECT games.*, categories.name as "categoryName", (SELECT COUNT(*) FROM rentals WHERE rentals."gameId"=games.id) as "rentalsCount"  
+    FROM games 
+    JOIN categories 
+    ON games."categoryId" = categories.id   
+    JOIN rentals
+    ON rentals."gameId"=games.id
+    ${queryComplement}
+    
+    `, querySupplieParams);
 
     const initialIndex = offset ? parseInt(offset) : 0;
     const lastIndex = limit ? parseInt(limit) + initialIndex : games.length;

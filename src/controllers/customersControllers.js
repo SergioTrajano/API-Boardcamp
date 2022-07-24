@@ -16,15 +16,19 @@ export async function insertCostumer(req, res) {
 export async function listCostumers(req, res) {
     const searchCpf = req.query.cpf;
     const { offset, limit } = req.query;
-    let customers;
+    const querySupplieParams = [];
+    let queryComplement = ``;
 
     if (searchCpf) {
-        const { rows: list } = await connection.query(`SELECT * FROM customers WHERE cpf LIKE $1`, [searchCpf + "%"]);
-        customers = list;
-    } else {
-        const { rows: list } = await connection.query(`SELECT * FROM customers`);
-        customers = list;
+        querySupplieParams.push(searchCpf);
+        queryComplement += `WHERE cpf LIKE $${querySupplieParams.length}`;
     }
+
+    const { rows: customers } = await connection.query(`
+    SELECT customers.*, (SELECT COUNT(*) FROM rentals WHERE rentals."customerId"=customers.id)
+    as "rentalsCount"
+    FROM customers
+    ${queryComplement}`, querySupplieParams);
 
     customers.map(c => c.birthday = dayjs(c.birthday).format("YYYY-MM-DD"));
 
