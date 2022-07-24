@@ -14,7 +14,6 @@ function badRequestMistakes(newCustomer) {
     if (!newCustomer.name) info.push("'name' não pode ser uma string vazia");
     if (!validateCPF.test(newCustomer.cpf)) info.push("'cpf' deve ser uma string com 11 caracteres numéricos");
     if (!validatePhone.test(newCustomer.phone)) info.push("'phone' deve ser uma string com 10 ou 11 caracteres numéricos");
-    if (currentYear - costumersBirthdayYear > maxValidAge || costumersBirthdayYear > currentYear) info.push("Data invalida!");
 
     return info;
 }

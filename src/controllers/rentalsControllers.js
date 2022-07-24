@@ -60,25 +60,32 @@ function rentalModal(getRentals) {
 export async function listRentals(req, res) {
     const customerId = parseInt(req.query.customerId);
     const gameId = parseInt(req.query.gameId);
-    const { offset, limit } = req.query;
+    const { offset, limit, status, startDate } = req.query;
     
     const querySupplieParams = [];
-    if (customerId) querySupplieParams.push(customerId);
-    if (gameId) querySupplieParams.push(gameId);
-    const conditions = [
-        customerId ? `WHERE rentals."customerId"=$${querySupplieParams.length}` : ``,
-        gameId ? `WHERE rentals."gameId"=$${querySupplieParams.length}` : ``
-    ];
+    let queryComplement = ``;
+    if (customerId) {
+        querySupplieParams.push(customerId);
+        queryComplement += `WHERE rentals."customerId"=$${querySupplieParams.length} `;
+    }
+    if (gameId) {
+        querySupplieParams.push(gameId);
+        querySupplieParams.length ? queryComplement += `AND rentals."gameId"=$${querySupplieParams.length} ` : `WHERE rentals."gameId"=$${querySupplieParams.length} `; 
+    }
 
-    const { rows: getRentals } = await connection.query(`
+    let { rows: getRentals } = await connection.query(`
         SELECT rentals.*, games.id as "gId", games.name as "gName", categories.id as "caId", categories.name as "caName", customers.id as "cId", customers.name as "cName" 
         FROM rentals 
         JOIN customers ON rentals."customerId"=customers.id 
         JOIN games ON rentals."gameId"=games.id 
         JOIN categories ON games."categoryId"=categories.id
-        ${conditions[0]}
-        ${conditions[1]}
+        ${queryComplement}
+        
         `, querySupplieParams);
+
+    if (status === "open") getRentals = getRentals.filter(rental => !rental.returnDate);
+    if (status === "close") getRentals = getRentals.filter(rental => rental.returnDate);
+    if (dayjs(startDate).format("YYYY-MM-DD") !== "Invalid Date") getRentals = getRentals.filter(rental => dayjs(rental.rentDate) >= dayjs(startDate));
 
     const rentals = rentalModal(getRentals);
 
