@@ -21,7 +21,15 @@ export async function listCostumers(req, res) {
 
     if (searchCpf) {
         querySupplieParams.push(searchCpf);
-        queryComplement += `WHERE cpf LIKE $${querySupplieParams.length}`;
+        queryComplement += `WHERE cpf LIKE $${querySupplieParams.length} `;
+    }
+    if (offset && Number(offset)) {
+        querySupplieParams.push(offset);
+        queryComplement += `OFFSET $${querySupplieParams.length} `;
+    }
+    if (limit && Number(limit)) {
+        querySupplieParams.push(limit);
+        queryComplement += `LIMIT $${querySupplieParams.length} `;
     }
 
     const { rows: customers } = await connection.query(`
@@ -30,12 +38,9 @@ export async function listCostumers(req, res) {
     FROM customers
     ${queryComplement}`, querySupplieParams);
 
-    customers.map(c => c.birthday = dayjs(c.birthday).format("YYYY-MM-DD"));
+    customers.forEach(c => c.birthday = dayjs(c.birthday).format("YYYY-MM-DD"));
 
-    const initialIndex = offset ? parseInt(offset) : 0;
-    const lastIndex = limit ? parseInt(limit) + initialIndex : customers.length;
-
-    res.send(customers.slice(initialIndex, lastIndex));
+    res.send(customers);
 }
 
 export async function identifyCustomerById(req, res) {

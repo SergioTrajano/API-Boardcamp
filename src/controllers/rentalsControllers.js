@@ -74,8 +74,25 @@ export async function listRentals(req, res) {
         querySupplieParams.push(gameId);
         currentquerySupplieParamsLength > 0 ? queryComplement += `AND rentals."gameId"=$${querySupplieParams.length} ` : `WHERE rentals."gameId"=$${querySupplieParams.length} `; 
     }
-    
+    if (status) {
+        const currentquerySupplieParamsLength = querySupplieParams.length;
 
+        if (status === "open") {
+            currentquerySupplieParamsLength.length ? queryComplement += `AND WHERE rentals."returnDate" IS NULL ` : queryComplement += `WHERE rentals."returnDate" IS NULL `; 
+        }
+        else if (status === "close") {
+            currentquerySupplieParamsLength.length ? queryComplement += `AND WHERE rentals."returnDate" IS NOT NULL ` : queryComplement += `WHERE rentals."returnDate" IS NOT NULL `;
+        }
+    }
+    if (offset && Number(offset)) {
+        querySupplieParams.push(offset);
+        queryComplement += `OFFSET $${querySupplieParams.length} `;
+    }
+    if (limit && Number(limit)) {
+        querySupplieParams.push(limit);
+        queryComplement += `LIMIT $${querySupplieParams.length} `;
+    }
+    
     let { rows: getRentals } = await connection.query(`
         SELECT rentals.*, games.id as "gId", games.name as "gName", categories.id as "caId", categories.name as "caName", customers.id as "cId", customers.name as "cName" 
         FROM rentals 
@@ -86,16 +103,11 @@ export async function listRentals(req, res) {
         
         `, querySupplieParams);
 
-    if (status === "open") getRentals = getRentals.filter(rental => !rental.returnDate);
-    else if (status === "close") getRentals = getRentals.filter(rental => rental.returnDate);
     if ( startDate && dayjs(startDate).format("YYYY-MM-DD") !== "Invalid Date") getRentals = getRentals.filter(rental => dayjs(rental.rentDate) >= dayjs(startDate));
 
     const rentals = rentalModal(getRentals);
 
-    const initialIndex = offset ? parseInt(offset) : 0;
-    const lastIndex = limit ? parseInt(limit) + initialIndex : rentals.length;
-
-    res.send(rentals.splice(initialIndex, lastIndex));
+    res.send(rentals);
 }
 
 export async function finishRental(req, res) {

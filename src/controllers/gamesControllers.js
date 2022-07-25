@@ -21,21 +21,25 @@ export async function listGames(req, res) {
 
     if (searchNameInitial) {
         querySupplieParams.push(searchNameInitial);
-        queryComplement += `WHERE LOWER(games.name) LIKE Lower($${querySupplieParams.length})`;
+        queryComplement += `WHERE LOWER(games.name) LIKE Lower($${querySupplieParams.length}) `;
+    }
+    if (offset && Number(offset)) {
+        querySupplieParams.push(offset);
+        queryComplement += `OFFSET $${querySupplieParams.length} `;
+    }
+    if (limit && Number(limit)) {
+        querySupplieParams.push(limit);
+        queryComplement += `LIMIT $${querySupplieParams.length} `;
     }
 
-    const { rows: games } = await connection.query(`SELECT games.*, categories.name as "categoryName", (SELECT COUNT(*) FROM rentals WHERE rentals."gameId"=games.id) as "rentalsCount"  
+    const { rows: games } = await connection.query(`SELECT games.*, categories.name as "categoryName", 
+    (SELECT COUNT(*) FROM rentals WHERE rentals."gameId"=games.id) as "rentalsCount"  
     FROM games 
     JOIN categories 
-    ON games."categoryId" = categories.id   
-    JOIN rentals
-    ON rentals."gameId"=games.id
+    ON games."categoryId" = categories.id
     ${queryComplement}
     
     `, querySupplieParams);
 
-    const initialIndex = offset ? parseInt(offset) : 0;
-    const lastIndex = limit ? parseInt(limit) + initialIndex : games.length;
-
-    res.send(games.splice(initialIndex, lastIndex));
+    res.send(games);
 }
