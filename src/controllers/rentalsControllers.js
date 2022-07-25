@@ -140,3 +140,18 @@ export async function deleteRental(req, res) {
         res.sendStatus(500);
     }
 }
+
+export async function getRentalsMetrics(req, res) {
+    const { rows: metrics } = await connection.query(`
+    SELECT COALESCE(sum("originalPrice"+"delayFee"),0) as revenue, COUNT(*) as rentals 
+    FROM rentals
+    WHERE "returnDate" IS NOT NULL`);
+
+    const response = {
+        revenue: Number(metrics[0].revenue),
+        rentals: Number(metrics[0].rentals),
+        average: Number(metrics[0].revenue) ? metrics[0].average = metrics[0].revenue / metrics[0].rentals : metrics[0].average = 0,
+    }
+
+    res.send(response);
+}
