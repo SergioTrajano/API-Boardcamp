@@ -21,7 +21,7 @@ export async function listCostumers(req, res) {
 
     if (searchCpf) {
         querySupplieParams.push(searchCpf);
-        queryComplement += `WHERE cpf LIKE $${querySupplieParams.length} `;
+        queryComplement += `WHERE cpf LIKE '%' || $${querySupplieParams.length} `;
     }
     if (offset && Number(offset)) {
         querySupplieParams.push(offset);

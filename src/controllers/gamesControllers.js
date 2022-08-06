@@ -21,7 +21,7 @@ export async function listGames(req, res) {
 
     if (searchNameInitial) {
         querySupplieParams.push(searchNameInitial);
-        queryComplement += `WHERE LOWER(games.name) LIKE Lower($${querySupplieParams.length}) `;
+        queryComplement += `WHERE LOWER(games.name) LIKE  Lower($${querySupplieParams.length}) || '%'`;
     }
     if (offset && Number(offset)) {
         querySupplieParams.push(offset);

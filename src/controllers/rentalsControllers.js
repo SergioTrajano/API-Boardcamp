@@ -72,7 +72,7 @@ export async function listRentals(req, res) {
     if (gameId) {
         const currentquerySupplieParamsLength = querySupplieParams.length;
         querySupplieParams.push(gameId);
-        currentquerySupplieParamsLength > 0 ? queryComplement += `AND rentals."gameId"=$${querySupplieParams.length} ` : `WHERE rentals."gameId"=$${querySupplieParams.length} `; 
+        currentquerySupplieParamsLength > 0 ? queryComplement += `AND rentals."gameId"=$${querySupplieParams.length} ` : queryComplement += `WHERE rentals."gameId"=$${querySupplieParams.length} `; 
     }
     if (status) {
         const currentquerySupplieParamsLength = querySupplieParams.length;
